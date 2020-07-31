@@ -122,11 +122,13 @@ def main():
 
     # Done 9: Set    enemy_rows    to an initial value of 3.
     # Done 10: Create an EnemyFleet object (called enemy_fleet) with the screen and enemy_rows
+    is_game_over = False
     enemy_rows = 3
     enemy_fleet = EnemyFleet(screen, enemy_rows)
     # Done 1: Create a Fighter (called fighter) at location  320, 590
     fighter = Fighter(screen, 320, 590)
 
+    game_over_image = pygame.image.load("gameover.png")
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -137,9 +139,16 @@ def main():
             if event.type == pygame.QUIT:
                 sys.exit()
 
-
-
         screen.fill((0, 0, 0))
+
+        fighter.draw()
+        enemy_fleet.draw()
+        if is_game_over:
+            screen.blit(game_over_image, (170, 200))
+            pygame.display.update()
+            continue
+
+
         pressed_keys = pygame.key.get_pressed()
         # Done 3: If pygame.K_LEFT is pressed and fighter.x is greater than -50 move the fighter left 5
         # Done 4: If pygame.K_RIGHT is pressed and fighter.x is less than 590 move the fighter right 5
@@ -155,7 +164,7 @@ def main():
         # Done 11: Move the enemy_fleet
         # Done 12: Draw the enemy_fleet
         enemy_fleet.move()
-        enemy_fleet.draw()
+
 
         # Done 6: For each missile in the fighter missiles
         #   Done 7: Move the missile
@@ -189,10 +198,14 @@ def main():
             enemy_rows = enemy_rows + 1
             enemy_fleet = EnemyFleet(screen, enemy_rows)
 
-        # TODO 22: Check for your death.  Figure out what needs to happen.
+        # Done 22: Check for your death.  Figure out what needs to happen.
         # Hints: Check if a Badguy gets a y value greater than 545
         #    If that happens set a variable (game_over) as appropriate
         #    If the game is over, show the gameover.png image at (170, 200)
+        for badguy in enemy_fleet.badguys:
+            if badguy.y > 545:
+                is_game_over = True
+
 
         # TODO 23: Create a Scoreboard class (from scratch)
         # Hints: Instance variables: screen, score, and font (size 30)
