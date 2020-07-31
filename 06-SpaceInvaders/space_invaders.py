@@ -72,6 +72,7 @@ class Badguy:
         if abs(self.x - self.original_x) > 100:
             self.speed = self.speed * -1
             self.y = self.y + abs(self.speed) * 4
+
     def draw(self):
         # Draw this Badguy, using its image at its current (x, y) position.
         self.screen.blit(self.image, (self.x, self.y))
@@ -95,7 +96,7 @@ class EnemyFleet:
     def is_defeated(self):
         # Return True if the number of badguys in this Enemy Fleet is 0,
         # otherwise return False.
-        pass
+        return len(self.badguys) == 0
 
     def move(self):
         # Make each badguy in this EnemyFleet move.
@@ -135,6 +136,7 @@ def main():
                 fighter.fire()
             if event.type == pygame.QUIT:
                 sys.exit()
+
 
 
         screen.fill((0, 0, 0))
@@ -180,9 +182,12 @@ def main():
         fighter.remove_exploded_missiles()
         enemy_fleet.remove_dead_badguys()
 
-        # TODO 19: If the enemy is_defeated
-        #     TODO 20: Increment the enemy_rows
-        #     TODO 21: Create a new enemy_fleet with the screen and enemy_rows
+        # Done 19: If the enemy is_defeated
+        #     Done 20: Increment the enemy_rows
+        #     Done 21: Create a new enemy_fleet with the screen and enemy_rows
+        if enemy_fleet.is_defeated:
+            enemy_rows = enemy_rows + 1
+            enemy_fleet = EnemyFleet(screen, enemy_rows)
 
         # TODO 22: Check for your death.  Figure out what needs to happen.
         # Hints: Check if a Badguy gets a y value greater than 545
