@@ -22,11 +22,17 @@ class Fighter:
         # Set   self.missiles   to the empty list.
         # Load the file  "fighter.png"  as the image
         # Set the colorkey to white (it has a white background that needs removed)
-        pass
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.image = pygame.image.load("fighter.png")
+        self.image.set_colorkey((255, 255, 255))
+        self.missiles = []
+
 
     def draw(self):
         # Draw this Fighter, using its image at its current (x, y) position.
-        pass
+        self.screen.blit(self.image, (self.x, self.y))
 
     def fire(self):
         # Construct a new Missile 50 pixels to the right of this Fighter.
@@ -98,7 +104,8 @@ def main():
 
     # TODO 9: Set    enemy_rows    to an initial value of 3.
     # TODO 10: Create an EnemyFleet object (called enemy_fleet) with the screen and enemy_rows
-    # TODO 1: Create a Fighter (called fighter) at location  320, 590
+    # Done 1: Create a Fighter (called fighter) at location  320, 590
+    fighter = Fighter(screen, 320, 590)
 
     while True:
         clock.tick(60)
@@ -110,9 +117,16 @@ def main():
 
         screen.fill((0, 0, 0))
         pressed_keys = pygame.key.get_pressed()
-        # TODO 3: If pygame.K_LEFT is pressed and fighter.x is greater than -50 move the fighter left 5
-        # TODO 4: If pygame.K_RIGHT is pressed and fighter.x is less than 590 move the fighter right 5
-        # TODO 2: Draw the fighter
+        # Done 3: If pygame.K_LEFT is pressed and fighter.x is greater than -50 move the fighter left 5
+        # Done 4: If pygame.K_RIGHT is pressed and fighter.x is less than 590 move the fighter right 5
+        # Done 2: Draw the fighter
+        fighter.draw()
+        if pressed_keys[pygame.K_LEFT] and fighter.x > -50:
+            fighter.x = fighter.x - 5
+        if pressed_keys[pygame.K_RIGHT] and fighter.x < 590:
+            fighter.x = fighter.x + 5
+
+
 
         # TODO 11: Move the enemy_fleet
         # TODO 12: Draw the enemy_fleet
