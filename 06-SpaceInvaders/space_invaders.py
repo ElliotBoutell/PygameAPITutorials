@@ -57,16 +57,24 @@ class Badguy:
         # Store the given arguments as instance variables with the same name.
         # Set   is_dead to False   and   original_x to x   and move_right to True.
         # Load the file  "badguy.png"  as the image. and set its colorkey to black.
-        pass
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.original_x = x
+        self.speed = speed
+        self.is_dead = False
+        self.image = pygame.image.load("badguy.png")
 
     def move(self):
         # Move 2 units in the current direction.
         # Switch direction if this Badguy's position is more than 100 pixels from its original position.
-        pass
-
+        self.x = self.x + self.speed
+        if abs(self.x - self.original_x) > 100:
+            self.speed = self.speed * -1
+            self.y = self.y + abs(self.speed) * 4
     def draw(self):
         # Draw this Badguy, using its image at its current (x, y) position.
-        pass
+        self.screen.blit(self.image, (self.x, self.y))
 
     def hit_by(self, missile):
         # Make a Badguy hitbox rect.
@@ -90,11 +98,13 @@ class EnemyFleet:
 
     def move(self):
         # Make each badguy in this EnemyFleet move.
-        pass
+        for badguy in self.badguys:
+            badguy.move()
 
     def draw(self):
         # Make each badguy in this EnemyFleet draw itself.
-        pass
+        for badguy in self.badguys:
+            badguy.draw()
 
     def remove_dead_badguys(self):
         for k in range(len(self.badguys) - 1, -1, -1):
@@ -108,8 +118,10 @@ def main():
     pygame.display.set_caption("SPACE INVADERS!")
     screen = pygame.display.set_mode((640, 650))
 
-    # TODO 9: Set    enemy_rows    to an initial value of 3.
-    # TODO 10: Create an EnemyFleet object (called enemy_fleet) with the screen and enemy_rows
+    # Done 9: Set    enemy_rows    to an initial value of 3.
+    # Done 10: Create an EnemyFleet object (called enemy_fleet) with the screen and enemy_rows
+    enemy_rows = 3
+    enemy_fleet = EnemyFleet(screen, enemy_rows)
     # Done 1: Create a Fighter (called fighter) at location  320, 590
     fighter = Fighter(screen, 320, 590)
 
@@ -137,8 +149,10 @@ def main():
 
 
 
-        # TODO 11: Move the enemy_fleet
-        # TODO 12: Draw the enemy_fleet
+        # Done 11: Move the enemy_fleet
+        # Done 12: Draw the enemy_fleet
+        enemy_fleet.move()
+        enemy_fleet.draw()
 
         # Done 6: For each missile in the fighter missiles
         #   Done 7: Move the missile
