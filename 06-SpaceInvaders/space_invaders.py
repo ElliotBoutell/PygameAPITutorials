@@ -114,6 +114,20 @@ class EnemyFleet:
                 del self.badguys[k]
 
 
+class Scoreboard:
+
+    def __init__(self, screen):
+        self.screen = screen
+        self.score = 0
+        self.font = pygame.font.Font(None, 30)
+
+    def draw(self):
+        score_string = "Score:" + str(self.score)
+        score_image = self.font.render(score_string, True, (255, 255, 255))
+        self.screen.blit(score_image, (5, 5))
+
+
+
 def main():
     pygame.init()
     clock = pygame.time.Clock()
@@ -127,6 +141,7 @@ def main():
     enemy_fleet = EnemyFleet(screen, enemy_rows)
     # Done 1: Create a Fighter (called fighter) at location  320, 590
     fighter = Fighter(screen, 320, 590)
+    scoreboard = Scoreboard(screen)
 
     game_over_image = pygame.image.load("gameover.png")
     while True:
@@ -140,7 +155,7 @@ def main():
                 sys.exit()
 
         screen.fill((0, 0, 0))
-
+        scoreboard.draw()
         fighter.draw()
         enemy_fleet.draw()
         if is_game_over:
@@ -181,7 +196,8 @@ def main():
 
         for badguy in enemy_fleet.badguys:
             for missile in fighter.missiles:
-                if badguy.hit_by(missile):
+                   if badguy.hit_by(missile):
+                    scoreboard.score = scoreboard.score + 100
                     badguy.is_dead = True
                     missile.has_exploded = True
 
@@ -207,11 +223,12 @@ def main():
                 is_game_over = True
 
 
-        # TODO 23: Create a Scoreboard class (from scratch)
+        # Done 23: Create a Scoreboard class (from scratch)
         # Hints: Instance variables: screen, score, and font (size 30)
         #    Methods: draw (and __init__)
         # Create a scoreboard and draw it at location 5, 5
         # When a Badguy is killed add 100 points to the scoreboard.score
+        scoreboard.draw()
 
         # TODO 24: Optional extra - Add sound effects!
 
