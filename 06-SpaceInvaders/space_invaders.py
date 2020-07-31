@@ -32,6 +32,7 @@ class Fighter:
         self.image = pygame.image.load("fighter.png")
         self.image.set_colorkey((255, 255, 255))
         self.missiles = []
+        self.fire_sound = pygame.mixer.Sound("pew.wav")
 
 
     def draw(self):
@@ -44,6 +45,7 @@ class Fighter:
         new_missile = Missile(self.screen, self.x + self.image.get_width() // 2,
                               self.screen.get_height() - self.image.get_height() + 1)
         self.missiles.append(new_missile)
+        self.fire_sound.play()
 
     def remove_exploded_missiles(self):
         # Already complete
@@ -64,6 +66,7 @@ class Badguy:
         self.speed = speed
         self.is_dead = False
         self.image = pygame.image.load("badguy.png")
+
 
     def move(self):
         # Move 2 units in the current direction.
@@ -88,6 +91,7 @@ class EnemyFleet:
     def __init__(self, screen, enemy_rows):
         # Already done.  Prepares the list of Badguys.
         self.badguys = []
+        self.explosion_sound = pygame.mixer.Sound("explosion.wav")
         for j in range(enemy_rows):
             for k in range(8):
                 self.badguys.append(Badguy(screen, 80 * k, 50 * j + 20, enemy_rows))
@@ -112,6 +116,7 @@ class EnemyFleet:
         for k in range(len(self.badguys) - 1, -1, -1):
             if self.badguys[k].is_dead:
                 del self.badguys[k]
+                self.explosion_sound.play()
 
 
 class Scoreboard:
@@ -142,6 +147,9 @@ def main():
     # Done 1: Create a Fighter (called fighter) at location  320, 590
     fighter = Fighter(screen, 320, 590)
     scoreboard = Scoreboard(screen)
+
+    win_sound = pygame.mixer.Sound("win.wav")
+    lose_sound = pygame.mixer.Sound("lose.wav")
 
     game_over_image = pygame.image.load("gameover.png")
     while True:
@@ -213,6 +221,7 @@ def main():
         if enemy_fleet.is_defeated:
             enemy_rows = enemy_rows + 1
             enemy_fleet = EnemyFleet(screen, enemy_rows)
+            win_sound.play()
 
         # Done 22: Check for your death.  Figure out what needs to happen.
         # Hints: Check if a Badguy gets a y value greater than 545
@@ -221,6 +230,7 @@ def main():
         for badguy in enemy_fleet.badguys:
             if badguy.y > 545:
                 is_game_over = True
+                lose_sound.play()
 
 
         # Done 23: Create a Scoreboard class (from scratch)
@@ -230,7 +240,7 @@ def main():
         # When a Badguy is killed add 100 points to the scoreboard.score
         scoreboard.draw()
 
-        # TODO 24: Optional extra - Add sound effects!
+        # Done 24: Optional extra - Add sound effects!
 
         pygame.display.update()
 
