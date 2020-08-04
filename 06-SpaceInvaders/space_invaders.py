@@ -162,6 +162,7 @@ def main():
             if event.type == pygame.QUIT:
                 sys.exit()
 
+
         screen.fill((0, 0, 0))
         scoreboard.draw()
         fighter.draw()
