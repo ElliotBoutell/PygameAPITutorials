@@ -24,14 +24,28 @@ class Player:
 
 
 class Disc:
-    def __init__(self, screen, x, y):
-        pass
+    def __init__(self, screen, x, y, radius, power, height):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.original_y = self.y
+        self.radius = radius
+        self.power = power
+        self.height = height
+        self.dy = 10
+        self.dx = self.power
 
     def draw(self):
-        pass
+        pygame.draw.circle(self.screen, (0, 0, 255), (int(self.x), int(self.y)), self.radius)
 
     def move(self):
-        pass
+        if self.y > self.original_y:
+            self.dx = 0
+            self.dy = 0
+        else:
+            self.dy = self.dy - .2
+        self.x = self.x + self.dx
+        self.y = self.y - self.dy
 
 
 class Basket:
@@ -42,6 +56,9 @@ class Basket:
         pass
 
     def spit_out(self):
+        pass
+
+    def catch(self):
         pass
 
 
@@ -127,6 +144,23 @@ def choose_player(clock, screen):
         pygame.display.update()
 
 
+def display_game_screen(clock, screen):
+    disc = Disc(screen, 500, 500, 10, 2, 10)
+    while True:
+        clock.tick(60)
+        for event in pygame.event.get():
+            pressed_keys = pygame.key.get_pressed()
+            if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
+                return
+            if event.type == pygame.QUIT:
+                sys.exit()
+        screen.fill((0, 0, 0))
+
+        disc.draw()
+        disc.move()
+        pygame.display.update()
+
+
 def display_leaderboard(clock, screen):
     while True:
         clock.tick(60)
@@ -154,9 +188,11 @@ def main():
     pygame.init()
     clock = pygame.time.Clock()
     pygame.display.set_caption("Disc Golf Putting Game")
-    screen = pygame.display.set_mode((700, 700))
+    screen = pygame.display.set_mode((1000, 1000))
     pygame.display.update()
+
     while True:
+        display_game_screen(clock, screen)
         display_welcome(clock, screen)
         choose_player(clock, screen)
         display_leaderboard(clock, screen)
