@@ -39,12 +39,14 @@ class Disc:
         pygame.draw.circle(self.screen, (0, 0, 255), (int(self.x), int(self.y)), self.radius)
 
     def move(self):
+        if self.y < self.height:
+            self.dy = 0
         if self.y > self.original_y:
-            self.dx = 0
+            self.power = 0
             self.dy = 0
         else:
             self.dy = self.dy - .2
-        self.x = self.x + self.dx
+        self.x = self.x + self.power
         self.y = self.y - self.dy
 
 
@@ -60,6 +62,30 @@ class Basket:
 
     def catch(self):
         pass
+
+
+class Slider:
+    def __init__(self, screen, x, y, length):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.length = length
+
+    def draw(self):
+        pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y), (self.x + self.length, self.y), 5)
+        pygame.draw.line(self.screen, (128, 128, 128), (self.x, self.y - 10), (self.x, self.y + 10), 8)
+
+    def set_power(self, disc, click_pos):
+        if 25 <= click_pos[0] < 65 and 20 <= click_pos[1] <= 30:
+            disc.power = 1
+        if 65 <= click_pos[0] < 105 and 20 <= click_pos[1] <= 30:
+            disc.power = 2
+        if 105 <= click_pos[0] < 145 and 20 <= click_pos[1] <= 30:
+            disc.power = 3
+        if 145 <= click_pos[0] < 185 and 20 <= click_pos[1] <= 30:
+            disc.power = 4
+        if 185 <= click_pos[0] <= 225 and 20 <= click_pos[1] <= 30:
+            disc.power = 5
 
 
 class Weather:
@@ -145,7 +171,10 @@ def choose_player(clock, screen):
 
 
 def display_game_screen(clock, screen):
-    disc = Disc(screen, 500, 500, 10, 2, 10)
+    disc = Disc(screen, 200, 500, 10, 4, 440)
+    power_slider = Slider(screen, 25, 25, 200)
+    height_slider = Slider(screen, 25, 75, 200)
+    print("Game Screen")
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -154,11 +183,31 @@ def display_game_screen(clock, screen):
                 return
             if event.type == pygame.QUIT:
                 sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                click_pos = event.pos
+                power_slider.set_power(disc, click_pos)
+                return disc, power_slider, height_slider
         screen.fill((0, 0, 0))
-
         disc.draw()
-        disc.move()
+        power_slider.draw()
+        height_slider.draw()
         pygame.display.update()
+
+
+def animation(clock, screen, disc, power_slider, height_slider):
+    print("animation")
+    while True:
+        screen.fill((0, 0, 0))
+        clock.tick(60)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                sys.exit()
+        power_slider.draw()
+        height_slider.draw()
+        disc.move()
+        disc.draw()
+        pygame.display.update()
+
 
 
 def display_leaderboard(clock, screen):
@@ -192,7 +241,8 @@ def main():
     pygame.display.update()
 
     while True:
-        display_game_screen(clock, screen)
+        disc, power_slider, height_slider = display_game_screen(clock, screen)
+        animation(clock, screen, disc, power_slider, height_slider)
         display_welcome(clock, screen)
         choose_player(clock, screen)
         display_leaderboard(clock, screen)
