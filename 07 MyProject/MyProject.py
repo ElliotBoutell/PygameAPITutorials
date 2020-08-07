@@ -2,6 +2,12 @@ import pygame
 import sys
 import math
 
+def distance(point1, point2):
+    point1_x = point1[0]
+    point2_x = point2[0]
+    point1_y = point1[1]
+    point2_y = point2[1]
+    return math.sqrt((point2_x - point1_x) ** 2 + (point2_y - point1_y) ** 2)
 
 class Player:
     def __init__(self, screen, x, y):
@@ -87,6 +93,18 @@ class Slider:
         if 185 <= click_pos[0] <= 225 and 20 <= click_pos[1] <= 30:
             disc.power = 5
 
+    def set_height(self, disc, click_pos):
+        if 25 <= click_pos[0] < 65 and 70 <= click_pos[1] <= 80:
+            disc.height = 480
+        if 65 <= click_pos[0] < 105 and 70 <= click_pos[1] <= 80:
+            disc.height = 460
+        if 105 <= click_pos[0] < 145 and 70 <= click_pos[1] <= 80:
+            disc.height = 440
+        if 145 <= click_pos[0] < 185 and 70 <= click_pos[1] <= 80:
+            disc.height = 420
+        if 185 <= click_pos[0] <= 225 and 70 <= click_pos[1] <= 80:
+            disc.height = 400
+
 
 class Weather:
     def __init__(self, screen, x, y):
@@ -171,7 +189,7 @@ def choose_player(clock, screen):
 
 
 def display_game_screen(clock, screen):
-    disc = Disc(screen, 200, 500, 10, 4, 440)
+    disc = Disc(screen, 200, 500, 10, 4, 480)
     power_slider = Slider(screen, 25, 25, 200)
     height_slider = Slider(screen, 25, 75, 200)
     print("Game Screen")
@@ -186,6 +204,11 @@ def display_game_screen(clock, screen):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 click_pos = event.pos
                 power_slider.set_power(disc, click_pos)
+        button = pygame.draw.circle(screen, (255, 0, 0), (500, 50), 40, 40)
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            click_pos2 = event.pos
+            button_position = distance(click_pos2, button.center)
+            if button_position <= 40:
                 return disc, power_slider, height_slider
         screen.fill((0, 0, 0))
         disc.draw()
