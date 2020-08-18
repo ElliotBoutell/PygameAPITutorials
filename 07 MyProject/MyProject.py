@@ -33,11 +33,14 @@ class Disc:
         self.height = height
         self.dy = 10
         self.dx = self.power
+        self.is_caught = False
 
     def draw(self):
         pygame.draw.circle(self.screen, (0, 0, 255), (int(self.x), int(self.y)), self.radius)
 
     def move(self):
+        if self.is_caught:
+            return
         if self.y < self.height:
             self.dy = 0
         if self.y > self.original_y:
@@ -55,18 +58,23 @@ class Basket:
         self.x = x
         self.y = y
 
+
     def draw(self):
         pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y), (self.x, self.y - 50), 5)
-        pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y - 30), (self.x, self.y - 100), 100)
+        # pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y - 30), (self.x, self.y - 100), 100)
+        pygame.draw.rect(self.screen, (255, 255, 255), (self.x - 50, self.y - 150, 100, 100))
 
     def spit_out(self):
         pass
 
-    def catch(self):
-        font1 = pygame.font.Font(None, 50)
-        message_text1 = "Good Putt!"
-        message_image1 = font1.render(message_text1, True, (0, 255, 0))
-        self.screen.blit(message_image1, (200, 800))
+    def catch(self, disc):
+        hit_box = pygame.Rect(self.x - 50, self.y - 150, 100, 100)
+        if hit_box.collidepoint(int(disc.x), int(disc.y)):
+            disc.x = self.x
+            disc.y = self.y - 70
+            disc.dy = 0
+            disc.dx = 0
+            disc.is_caught = True
 
 
 class Slider:
@@ -118,7 +126,6 @@ class Slider:
         if 185 <= click_pos[0] <= 225 and 70 <= click_pos[1] <= 80:
             disc.height = 350
             self.slider_x = click_pos[0]
-
 
 
 class Weather:
@@ -238,14 +245,16 @@ def animation(clock, screen, disc, power_slider, height_slider, basket):
         screen.blit(message_image1, (470, 40))
         power_slider.draw()
         height_slider.draw()
+        basket.draw()
         disc.move()
         disc.draw()
-        basket.draw()
-        # if 750 <= disc.x <= 800 and 470 <= disc.y <= 370:
-        #     font1 = pygame.font.Font(None, 50)
-        #     message_text1 = "Good Putt!"
-        #     message_image1 = font1.render(message_text1, True, (0, 255, 0))
-        #     screen.blit(message_image1, (200, 800))
+        basket.catch(disc)
+        if disc.is_caught:
+            font2 = pygame.font.Font(None, 50)
+            message_text2 = "Good Putt!"
+            message_image2 = font2.render(message_text2, True, (0, 255, 0))
+            screen.blit(message_image2, (800, 200))
+
         pygame.display.update()
 
 
@@ -276,7 +285,7 @@ def main():
     pygame.init()
     clock = pygame.time.Clock()
     pygame.display.set_caption("Disc Golf Putting Game")
-    screen = pygame.display.set_mode((1000, 1000))
+    screen = pygame.display.set_mode((1000, 500))
     pygame.display.update()
 
     while True:
