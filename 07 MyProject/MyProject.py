@@ -2,12 +2,14 @@ import pygame
 import sys
 import math
 
+
 def distance(point1, point2):
     point1_x = point1[0]
     point2_x = point2[0]
     point1_y = point1[1]
     point2_y = point2[1]
     return math.sqrt((point2_x - point1_x) ** 2 + (point2_y - point1_y) ** 2)
+
 
 class Player:
     def __init__(self, screen, x, y):
@@ -16,16 +18,7 @@ class Player:
     def draw(self):
         pass
 
-    def normal_putt(self):
-        pass
-
-    def jump_putt(self):
-        pass
-
-    def power(self):
-        pass
-
-    def height(self):
+    def putt(self):
         pass
 
 
@@ -58,52 +51,74 @@ class Disc:
 
 class Basket:
     def __init__(self, screen, x, y):
-        pass
+        self.screen = screen
+        self.x = x
+        self.y = y
 
     def draw(self):
-        pass
+        pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y), (self.x, self.y - 50), 5)
+        pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y - 30), (self.x, self.y - 100), 100)
 
     def spit_out(self):
         pass
 
     def catch(self):
-        pass
+        font1 = pygame.font.Font(None, 50)
+        message_text1 = "Good Putt!"
+        message_image1 = font1.render(message_text1, True, (0, 255, 0))
+        self.screen.blit(message_image1, (200, 800))
 
 
 class Slider:
     def __init__(self, screen, x, y, length):
         self.screen = screen
-        self.x = x
-        self.y = y
+        self.bar_x = x
+        self.bar_y = y
+        self.slider_x = x
+        self.slider_y = y
         self.length = length
 
     def draw(self):
-        pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y), (self.x + self.length, self.y), 5)
-        pygame.draw.line(self.screen, (128, 128, 128), (self.x, self.y - 10), (self.x, self.y + 10), 8)
+        pygame.draw.line(self.screen, (255, 255, 255), (self.bar_x, self.bar_y),
+                         (self.bar_x + self.length, self.bar_y), 5)
+        pygame.draw.line(self.screen, (128, 128, 128),
+                         (self.slider_x, self.slider_y - 10),
+                         (self.slider_x, self.slider_y + 10), 8)
 
     def set_power(self, disc, click_pos):
         if 25 <= click_pos[0] < 65 and 20 <= click_pos[1] <= 30:
             disc.power = 1
+            self.slider_x = click_pos[0]
         if 65 <= click_pos[0] < 105 and 20 <= click_pos[1] <= 30:
             disc.power = 2
+            self.slider_x = click_pos[0]
         if 105 <= click_pos[0] < 145 and 20 <= click_pos[1] <= 30:
             disc.power = 3
+            self.slider_x = click_pos[0]
         if 145 <= click_pos[0] < 185 and 20 <= click_pos[1] <= 30:
             disc.power = 4
+            self.slider_x = click_pos[0]
         if 185 <= click_pos[0] <= 225 and 20 <= click_pos[1] <= 30:
             disc.power = 5
+            self.slider_x = click_pos[0]
 
     def set_height(self, disc, click_pos):
         if 25 <= click_pos[0] < 65 and 70 <= click_pos[1] <= 80:
-            disc.height = 480
+            disc.height = 430
+            self.slider_x = click_pos[0]
         if 65 <= click_pos[0] < 105 and 70 <= click_pos[1] <= 80:
-            disc.height = 460
+            disc.height = 410
+            self.slider_x = click_pos[0]
         if 105 <= click_pos[0] < 145 and 70 <= click_pos[1] <= 80:
-            disc.height = 440
+            disc.height = 390
+            self.slider_x = click_pos[0]
         if 145 <= click_pos[0] < 185 and 70 <= click_pos[1] <= 80:
-            disc.height = 420
+            disc.height = 370
+            self.slider_x = click_pos[0]
         if 185 <= click_pos[0] <= 225 and 70 <= click_pos[1] <= 80:
-            disc.height = 400
+            disc.height = 350
+            self.slider_x = click_pos[0]
+
 
 
 class Weather:
@@ -189,9 +204,10 @@ def choose_player(clock, screen):
 
 
 def display_game_screen(clock, screen):
-    disc = Disc(screen, 200, 500, 10, 4, 480)
+    disc = Disc(screen, 500, 450, 10, 4, 430)
     power_slider = Slider(screen, 25, 25, 200)
     height_slider = Slider(screen, 25, 75, 200)
+    basket = Basket(screen, 800, 500)
     print("Game Screen")
     while True:
         clock.tick(60)
@@ -203,21 +219,26 @@ def display_game_screen(clock, screen):
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 click_pos = event.pos
+                button_position = distance(click_pos, (500, 50))
+                if button_position <= 40:
+                    return disc, power_slider, height_slider, basket
                 power_slider.set_power(disc, click_pos)
-        button = pygame.draw.circle(screen, (255, 0, 0), (500, 50), 40, 40)
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            click_pos2 = event.pos
-            button_position = distance(click_pos2, button.center)
-            if button_position <= 40:
-                return disc, power_slider, height_slider
+                height_slider.set_height(disc, click_pos)
+
         screen.fill((0, 0, 0))
+        pygame.draw.circle(screen, (255, 0, 0), (500, 50), 40, 40)
+        font1 = pygame.font.Font(None, 30)
+        message_text1 = "Throw"
+        message_image1 = font1.render(message_text1, True, (255, 255, 255))
+        screen.blit(message_image1, (470, 40))
         disc.draw()
         power_slider.draw()
         height_slider.draw()
+        basket.draw()
         pygame.display.update()
 
 
-def animation(clock, screen, disc, power_slider, height_slider):
+def animation(clock, screen, disc, power_slider, height_slider, basket):
     print("animation")
     while True:
         screen.fill((0, 0, 0))
@@ -225,12 +246,18 @@ def animation(clock, screen, disc, power_slider, height_slider):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
+        pygame.draw.circle(screen, (255, 0, 0), (500, 50), 40, 40)
         power_slider.draw()
         height_slider.draw()
         disc.move()
         disc.draw()
+        basket.draw()
+        # if 750 <= disc.x <= 800 and 470 <= disc.y <= 370:
+        #     font1 = pygame.font.Font(None, 50)
+        #     message_text1 = "Good Putt!"
+        #     message_image1 = font1.render(message_text1, True, (0, 255, 0))
+        #     screen.blit(message_image1, (200, 800))
         pygame.display.update()
-
 
 
 def display_leaderboard(clock, screen):
@@ -264,8 +291,8 @@ def main():
     pygame.display.update()
 
     while True:
-        disc, power_slider, height_slider = display_game_screen(clock, screen)
-        animation(clock, screen, disc, power_slider, height_slider)
+        disc, power_slider, height_slider, basket = display_game_screen(clock, screen)
+        animation(clock, screen, disc, power_slider, height_slider, basket)
         display_welcome(clock, screen)
         choose_player(clock, screen)
         display_leaderboard(clock, screen)
