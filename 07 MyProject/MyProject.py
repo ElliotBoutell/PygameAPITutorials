@@ -1,7 +1,7 @@
 import pygame
 import sys
 import math
-
+import random
 
 def distance(point1, point2):
     point1_x = point1[0]
@@ -95,19 +95,19 @@ class Slider:
 
     def set_power(self, disc, click_pos):
         if 25 <= click_pos[0] < 65 and 20 <= click_pos[1] <= 30:
-            disc.power = 1
-            self.slider_x = click_pos[0]
-        if 65 <= click_pos[0] < 105 and 20 <= click_pos[1] <= 30:
             disc.power = 2
             self.slider_x = click_pos[0]
-        if 105 <= click_pos[0] < 145 and 20 <= click_pos[1] <= 30:
-            disc.power = 3
-            self.slider_x = click_pos[0]
-        if 145 <= click_pos[0] < 185 and 20 <= click_pos[1] <= 30:
+        if 65 <= click_pos[0] < 105 and 20 <= click_pos[1] <= 30:
             disc.power = 4
             self.slider_x = click_pos[0]
+        if 105 <= click_pos[0] < 145 and 20 <= click_pos[1] <= 30:
+            disc.power = 6
+            self.slider_x = click_pos[0]
+        if 145 <= click_pos[0] < 185 and 20 <= click_pos[1] <= 30:
+            disc.power = 8
+            self.slider_x = click_pos[0]
         if 185 <= click_pos[0] <= 225 and 20 <= click_pos[1] <= 30:
-            disc.power = 5
+            disc.power = 10
             self.slider_x = click_pos[0]
 
     def set_height(self, disc, click_pos):
@@ -128,18 +128,20 @@ class Slider:
             self.slider_x = click_pos[0]
 
 
-class Weather:
-    def __init__(self, screen, x, y):
-        pass
+class Wind:
+    def __init__(self, screen):
+        self.screen = screen
+        self.speed = random.randrange(-5, 6)
 
     def draw(self):
-        pass
+        font1 = pygame.font.Font(None, 30)
+        message_text1 = "Wind Speed: " + str(self.speed)
+        message_image1 = font1.render(message_text1, True, (255, 255, 255))
+        self.screen.blit(message_image1, (800, 100))
 
-    def wind(self):
-        pass
-
-    def rain(self):
-        pass
+    def blow(self, disc):
+        disc.power = disc.power + self.speed
+        disc.height = disc.height - self.speed
 
 
 class Tree:
@@ -148,7 +150,6 @@ class Tree:
 
     def draw(self):
         pass
-
 
 
 def display_welcome(clock, screen):
@@ -200,6 +201,7 @@ def display_game_screen(clock, screen):
     power_slider = Slider(screen, 25, 25, 200)
     height_slider = Slider(screen, 25, 75, 200)
     basket = Basket(screen, 800, 500)
+    wind = Wind(screen)
     print("Game Screen")
     while True:
         clock.tick(60)
@@ -213,9 +215,10 @@ def display_game_screen(clock, screen):
                 click_pos = event.pos
                 button_position = distance(click_pos, (500, 50))
                 if button_position <= 40:
-                    return disc, power_slider, height_slider, basket
+                    return disc, power_slider, height_slider, basket, wind
                 power_slider.set_power(disc, click_pos)
                 height_slider.set_height(disc, click_pos)
+                wind.blow(disc)
 
         screen.fill((0, 0, 0))
         pygame.draw.circle(screen, (255, 0, 0), (500, 50), 40, 40)
@@ -227,10 +230,11 @@ def display_game_screen(clock, screen):
         power_slider.draw()
         height_slider.draw()
         basket.draw()
+        wind.draw()
         pygame.display.update()
 
 
-def animation(clock, screen, disc, power_slider, height_slider, basket):
+def animation(clock, screen, disc, power_slider, height_slider, basket, wind):
     print("animation")
     while True:
         screen.fill((0, 0, 0))
@@ -246,6 +250,7 @@ def animation(clock, screen, disc, power_slider, height_slider, basket):
         power_slider.draw()
         height_slider.draw()
         basket.draw()
+        wind.draw()
         disc.move()
         disc.draw()
         basket.catch(disc)
@@ -289,8 +294,8 @@ def main():
     pygame.display.update()
 
     while True:
-        disc, power_slider, height_slider, basket = display_game_screen(clock, screen)
-        animation(clock, screen, disc, power_slider, height_slider, basket)
+        disc, power_slider, height_slider, basket, wind = display_game_screen(clock, screen)
+        animation(clock, screen, disc, power_slider, height_slider, basket, wind)
         display_welcome(clock, screen)
         choose_player(clock, screen)
         display_leaderboard(clock, screen)
