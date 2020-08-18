@@ -3,6 +3,7 @@ import sys
 import math
 import random
 
+
 def distance(point1, point2):
     point1_x = point1[0]
     point2_x = point2[0]
@@ -33,13 +34,14 @@ class Disc:
         self.height = height
         self.dy = 10
         self.dx = self.power
-        self.is_caught = False
+        self.is_caught_by_basket = False
+        self.is_caught_by_tree = False
 
     def draw(self):
         pygame.draw.circle(self.screen, (0, 0, 255), (int(self.x), int(self.y)), self.radius)
 
     def move(self):
-        if self.is_caught:
+        if self.is_caught_by_basket or self.is_caught_by_tree:
             return
         if self.y < self.height:
             self.dy = 0
@@ -61,11 +63,7 @@ class Basket:
 
     def draw(self):
         pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y), (self.x, self.y - 50), 5)
-        # pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y - 30), (self.x, self.y - 100), 100)
         pygame.draw.rect(self.screen, (255, 255, 255), (self.x - 50, self.y - 150, 100, 100))
-
-    def spit_out(self):
-        pass
 
     def catch(self, disc):
         hit_box = pygame.Rect(self.x - 50, self.y - 150, 100, 100)
@@ -74,7 +72,7 @@ class Basket:
             disc.y = self.y - 70
             disc.dy = 0
             disc.dx = 0
-            disc.is_caught = True
+            disc.is_caught_by_basket = True
 
 
 class Slider:
@@ -145,11 +143,23 @@ class Wind:
 
 
 class Tree:
-    def __init__(self):
-        pass
+    def __init__(self, screen, x, y):
+        self.screen = screen
+        self.x = x
+        self.y = y
+        self.height = random.randrange(20, 101)
 
     def draw(self):
-        pass
+        pygame.draw.line(self.screen, (210, 105, 30), (self.x, self.y), (self.x, self.y - self.height), 10)
+
+    def catch(self, disc):
+        hit_box = pygame.Rect(self.x, self.y, 10, self.height)
+        if hit_box.collidepoint(int(disc.x), int(disc.y)):
+            disc.x = self.x - 10
+            disc.y = self.y - 10
+            disc.dy = 0
+            disc.dx = 0
+            disc.is_caught_by_tree = True
 
 
 def display_welcome(clock, screen):
@@ -167,7 +177,7 @@ def display_welcome(clock, screen):
         font1 = pygame.font.Font(None, 50)
         message_text1 = "Press Space to Continue"
         message_image1 = font1.render(message_text1, True, (255, 255, 0))
-        screen.blit(message_image1, (170, 600))
+        screen.blit(message_image1, (170, 400))
         font2 = pygame.font.Font(None, 50)
         message_text2 = "Welcome to Local Legends Disc Golf"
         message_image2 = font2.render(message_text2, True, (255, 255, 0))
@@ -192,7 +202,7 @@ def choose_player(clock, screen):
         font2 = pygame.font.Font(None, 50)
         message_text2 = "Press Space to Continue"
         message_image2 = font2.render(message_text2, True, (255, 255, 0))
-        screen.blit(message_image2, (170, 600))
+        screen.blit(message_image2, (170, 400))
         pygame.display.update()
 
 
@@ -202,6 +212,7 @@ def display_game_screen(clock, screen):
     height_slider = Slider(screen, 25, 75, 200)
     basket = Basket(screen, 800, 500)
     wind = Wind(screen)
+    tree = Tree(screen, 650, 500)
     print("Game Screen")
     while True:
         clock.tick(60)
@@ -215,7 +226,7 @@ def display_game_screen(clock, screen):
                 click_pos = event.pos
                 button_position = distance(click_pos, (500, 50))
                 if button_position <= 40:
-                    return disc, power_slider, height_slider, basket, wind
+                    return disc, power_slider, height_slider, basket, wind, tree
                 power_slider.set_power(disc, click_pos)
                 height_slider.set_height(disc, click_pos)
                 wind.blow(disc)
@@ -231,10 +242,11 @@ def display_game_screen(clock, screen):
         height_slider.draw()
         basket.draw()
         wind.draw()
+        tree.draw()
         pygame.display.update()
 
 
-def animation(clock, screen, disc, power_slider, height_slider, basket, wind):
+def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree):
     print("animation")
     while True:
         screen.fill((0, 0, 0))
@@ -253,13 +265,19 @@ def animation(clock, screen, disc, power_slider, height_slider, basket, wind):
         wind.draw()
         disc.move()
         disc.draw()
+        tree.draw()
+        tree.catch(disc)
         basket.catch(disc)
-        if disc.is_caught:
+        if disc.is_caught_by_basket:
             font2 = pygame.font.Font(None, 50)
             message_text2 = "Good Putt!"
             message_image2 = font2.render(message_text2, True, (0, 255, 0))
             screen.blit(message_image2, (800, 200))
-
+        if disc.is_caught_by_tree:
+            font3 = pygame.font.Font(None, 50)
+            message_text3 = "Too Bad!"
+            message_image3 = font3.render(message_text3, True, (0, 255, 0))
+            screen.blit(message_image3, (800, 200))
         pygame.display.update()
 
 
@@ -282,7 +300,7 @@ def display_leaderboard(clock, screen):
         font2 = pygame.font.Font(None, 50)
         message_text2 = "Press Space to Restart"
         message_image2 = font2.render(message_text2, True, (255, 255, 0))
-        screen.blit(message_image2, (170, 600))
+        screen.blit(message_image2, (170, 400))
         pygame.display.update()
 
 
@@ -294,8 +312,8 @@ def main():
     pygame.display.update()
 
     while True:
-        disc, power_slider, height_slider, basket, wind = display_game_screen(clock, screen)
-        animation(clock, screen, disc, power_slider, height_slider, basket, wind)
+        disc, power_slider, height_slider, basket, wind, tree = display_game_screen(clock, screen)
+        animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree)
         display_welcome(clock, screen)
         choose_player(clock, screen)
         display_leaderboard(clock, screen)
