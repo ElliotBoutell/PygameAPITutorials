@@ -143,21 +143,6 @@ class Tree:
         pass
 
 
-class Menu:
-    def __init__(self, screen, x, y):
-        pass
-
-    def draw(self):
-        pass
-
-
-class End:
-    def __init__(self, screen, x, y):
-        pass
-
-    def draw(self):
-        pass
-
 
 def display_welcome(clock, screen):
     while True:
@@ -247,6 +232,10 @@ def animation(clock, screen, disc, power_slider, height_slider, basket):
             if event.type == pygame.QUIT:
                 sys.exit()
         pygame.draw.circle(screen, (255, 0, 0), (500, 50), 40, 40)
+        font1 = pygame.font.Font(None, 30)
+        message_text1 = "Throw"
+        message_image1 = font1.render(message_text1, True, (255, 255, 255))
+        screen.blit(message_image1, (470, 40))
         power_slider.draw()
         height_slider.draw()
         disc.move()
