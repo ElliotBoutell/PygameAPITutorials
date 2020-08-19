@@ -206,6 +206,7 @@ class Scoreboard:
 
 
 def display_welcome(clock, screen):
+    background = pygame.image.load("menu_screen.png")
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -215,7 +216,6 @@ def display_welcome(clock, screen):
             if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
                 return
         screen.fill((0, 0, 0))
-        background = pygame.image.load("menu_screen.png")
         screen.blit(background, (0, 0))
         space_continue = Message(screen, 170, 400, 50, (255, 255, 0), "Press Space to Continue")
         space_continue.draw()
@@ -225,6 +225,7 @@ def display_welcome(clock, screen):
 
 
 def choose_player(clock, screen):
+    background = pygame.image.load("name_screen.png")
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -232,10 +233,9 @@ def choose_player(clock, screen):
             if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
                 return
         screen.fill((0, 0, 0))
-        background = pygame.image.load("name_screen.png")
         screen.blit(background, (0, 0))
         font1 = pygame.font.Font(None, 50)
-        message_text1 = "Type Name:"
+        message_text1 = "Type First Name:"
         message_image1 = font1.render(message_text1, True, (255, 255, 0))
         screen.blit(message_image1, (25, 25))
         font2 = pygame.font.Font(None, 50)
@@ -257,9 +257,6 @@ def display_game_screen(clock, screen, scoreboard):
     while True:
         clock.tick(60)
         for event in pygame.event.get():
-            pressed_keys = pygame.key.get_pressed()
-            if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
-                return
             if event.type == pygame.QUIT:
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -332,6 +329,7 @@ def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tr
 
 
 def display_leaderboard(clock, screen):
+    background = pygame.image.load("end_screen.png")
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -341,16 +339,12 @@ def display_leaderboard(clock, screen):
             if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
                 return
         screen.fill((0, 0, 0))
-        background = pygame.image.load("end_screen.png")
         screen.blit(background, (0, 0))
-        font1 = pygame.font.Font(None, 30)
-        message_text1 = "Leaderboard"
-        message_image1 = font1.render(message_text1, True, (255, 255, 0))
-        screen.blit(message_image1, (25, 25))
-        font2 = pygame.font.Font(None, 50)
-        message_text2 = "Press Space to Restart"
-        message_image2 = font2.render(message_text2, True, (255, 255, 0))
-        screen.blit(message_image2, (170, 400))
+        your_score = Message(screen, 25, 25, 40, (255, 255, 255), "Your Score:")
+        leaderboard = Message(screen, 25, 25, 40, (255, 255, 255), "Leaderboard")
+        leaderboard.draw()
+        space_continue = Message(screen, 170, 400, 50, (255, 255, 0), "Press Space to Continue")
+        space_continue.draw()
         pygame.display.update()
 
 
@@ -373,8 +367,8 @@ def instruction_screen(clock, screen):
                " The wind will effect your power and height depending on which way it is blowing:" \
                " Headwinds (negative numbers) will lift the disc and take away power." \
                " Tailwinds (positive numbers) will drop your disc and add power." \
-               " Watch out for trees as well as they will block your disc" \
-               " But most importantly, Have Fun!"
+               " Watch out for trees as well as they will block your disc." \
+               " But most importantly, have fun!"
         drawText(screen, text, (255, 255, 255), (100, 75, 800, 500), font)
         space_continue = Message(screen, 170, 400, 50, (255, 255, 0), "Press Space to Continue")
         space_continue.draw()
