@@ -83,7 +83,7 @@ class Basket:
         pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y), (self.x, self.y - 50), 5)
         pygame.draw.rect(self.screen, (255, 255, 255), (self.x - 50, self.y - 150, 100, 100))
 
-    def catch(self, disc):
+    def catch(self, disc, scoreboard):
         hit_box = pygame.Rect(self.x - 50, self.y - 150, 100, 100)
         if hit_box.collidepoint(int(disc.x), int(disc.y)):
             disc.x = self.x
@@ -91,6 +91,7 @@ class Basket:
             disc.dy = 0
             disc.dx = 0
             disc.is_caught_by_basket = True
+
 
 
 class Slider:
@@ -181,6 +182,29 @@ class Tree:
             disc.is_caught_by_tree = True
 
 
+class Scoreboard:
+
+    def __init__(self, screen):
+        self.screen = screen
+        self.score = 0
+        self.font = pygame.font.Font(None, 30)
+        self.ready_to_update = True
+
+
+    def draw(self):
+        score_string = "Score:" + str(self.score)
+        score_image = self.font.render(score_string, True, (255, 255, 255))
+        self.screen.blit(score_image, (5, 100))
+
+    def update(self, amount_to_change):
+        if self.ready_to_update:
+            self.score = self.score + amount_to_change
+            self.ready_to_update = False
+
+    def make_ready(self):
+        self.ready_to_update = True
+
+
 def display_welcome(clock, screen):
     while True:
         clock.tick(60)
@@ -221,7 +245,7 @@ def choose_player(clock, screen):
         pygame.display.update()
 
 
-def display_game_screen(clock, screen):
+def display_game_screen(clock, screen, scoreboard):
     disc = Disc(screen, 500, 450, 10, 4, 430)
     power_slider = Slider(screen, 25, 25, 200)
     height_slider = Slider(screen, 25, 75, 200)
@@ -229,6 +253,7 @@ def display_game_screen(clock, screen):
     wind = Wind(screen)
     tree_y = random.randrange(350, 450)
     tree = Tree(screen, 650, tree_y)
+
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -260,11 +285,12 @@ def display_game_screen(clock, screen):
         basket.draw()
         wind.draw()
         tree.draw()
+        scoreboard.draw()
         pygame.display.update()
 
 
-def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree):
-    print("animation")
+def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard):
+    scoreboard.make_ready()
     while True:
         screen.fill((0, 0, 0))
         clock.tick(60)
@@ -284,17 +310,19 @@ def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tr
         height = Message(screen, 250, 75, 20, (255, 255, 255), "Height")
         height.draw()
         basket.draw()
+        scoreboard.draw()
         wind.draw()
         disc.move()
         disc.draw()
         tree.draw()
         tree.catch(disc)
-        basket.catch(disc)
+        basket.catch(disc, scoreboard)
         if disc.is_caught_by_basket:
             good_putt = Message(screen, 800, 200, 50, (0, 255, 0 ), "Good Putt!")
             good_putt.draw()
             space_continue = Message(screen, 170, 400, 50, (255, 255, 0), "Press Space to Continue")
             space_continue.draw()
+            scoreboard.update(100)
         if disc.is_caught_by_tree:
             too_bad = Message(screen, 800, 200, 50, (255, 0, 0), "Too Bad!")
             too_bad.draw()
@@ -326,18 +354,91 @@ def display_leaderboard(clock, screen):
         pygame.display.update()
 
 
+def instruction_screen(clock, screen):
+    while True:
+        clock.tick(60)
+        for event in pygame.event.get():
+            pressed_keys = pygame.key.get_pressed()
+            if event.type == pygame.QUIT:
+                sys.exit()
+            if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
+                return
+        screen.fill((0, 0, 0))
+        welcome = Message(screen, 180, 30, 50, (255, 255, 0), "Welcome to Local Legends Disc Golf")
+        welcome.draw()
+        font = pygame.font.Font(None, 30)
+        text = "The objective of this game is to land the disc inside the basket on each putt." \
+               " Each Putt is worth 100 points." \
+               " To throw the disc, set the power and height bars and hit the red button." \
+               " The wind will effect your power and height depending on which way it is blowing:" \
+               " Headwinds (negative numbers) will lift the disc and take away power." \
+               " Tailwinds (positive numbers) will drop your disc and add power." \
+               " Watch out for trees as well as they will block your disc" \
+               " But most importantly, Have Fun!"
+        drawText(screen, text, (255, 255, 255), (100, 75, 800, 500), font)
+        space_continue = Message(screen, 170, 400, 50, (255, 255, 0), "Press Space to Continue")
+        space_continue.draw()
+        pygame.display.update()
+
+
+def drawText(surface, text, color, rect, font, aa=False, bkg=None):
+    # I got from: https://www.pygame.org/wiki/TextWrap#:~:text=Simple%20Text%20Wrapping%20for%20pygame.&text=Simple%20function%20that%20will%20draw,make%20the%20line%20closer%20together.
+    # draw some text into an area of a surface
+    # automatically wraps words
+    # returns any text that didn't get blitted
+    rect = pygame.Rect(rect)
+    y = rect.top
+    lineSpacing = -2
+
+    # get the height of the font
+    fontHeight = font.size("Tg")[1]
+
+    while text:
+        i = 1
+
+        # determine if the row of text will be outside our area
+        if y + fontHeight > rect.bottom:
+            break
+
+        # determine maximum width of line
+        while font.size(text[:i])[0] < rect.width and i < len(text):
+            i += 1
+
+        # if we've wrapped the text, then adjust the wrap to the last word
+        if i < len(text):
+            i = text.rfind(" ", 0, i) + 1
+
+        # render the line and blit it to the surface
+        if bkg:
+            image = font.render(text[:i], 1, color, bkg)
+            image.set_colorkey(bkg)
+        else:
+            image = font.render(text[:i], aa, color)
+
+        surface.blit(image, (rect.left, y))
+        y += fontHeight + lineSpacing
+
+        # remove the text we just blitted
+        text = text[i:]
+
+    return text
+
+
 def main():
     pygame.init()
     clock = pygame.time.Clock()
     pygame.display.set_caption("Disc Golf Putting Game")
     screen = pygame.display.set_mode((1000, 500))
+    scoreboard = Scoreboard(screen)
     pygame.display.update()
 
     while True:
         display_welcome(clock, screen)
+        instruction_screen(clock, screen)
         choose_player(clock, screen)
-        disc, power_slider, height_slider, basket, wind, tree = display_game_screen(clock, screen)
-        animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree)
+        for k in range(3):
+            disc, power_slider, height_slider, basket, wind, tree = display_game_screen(clock, screen, scoreboard)
+            animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard)
         display_leaderboard(clock, screen)
 
 
