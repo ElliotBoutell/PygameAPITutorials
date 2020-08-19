@@ -33,21 +33,23 @@ class Player:
         self.screen = screen
         self.x = x
         self.y = y
+        self.starting_arm_position = (self.x, self.y)
+        self.end_arm_position = (self.x + 5, self. y - 30)
 
     def draw(self):
-        pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y), (self.x - 30, self.y - 30), 3)
+        pygame.draw.line(self.screen, (255, 255, 255), self.starting_arm_position, (self.x - 30, self.y - 30), 3)
         pygame.draw.line(self.screen, (255, 255, 255), (self.x - 60, self.y), (self.x - 30, self.y - 30), 3)
         pygame.draw.line(self.screen, (255, 255, 255), (self.x - 30, self.y - 30), (self.x - 30, self.y + 30), 3)
         pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y + 90), (self.x - 30, self.y + 30), 3)
         pygame.draw.line(self.screen, (255, 255, 255), (self.x - 60, self.y + 90), (self.x - 30, self.y + 30), 3)
         pygame.draw.circle(self.screen, (255, 255, 255), (self.x - 30, self.y - 45), 15, 15)
 
-    def putt(self):
-        pass
+    def move(self):
+        self.starting_arm_position = self.end_arm_position
 
 
 class Disc:
-    def __init__(self, screen, x, y, radius, power, height):
+    def __init__(self, screen, x, y, radius, power, height, color):
         self.screen = screen
         self.x = x
         self.y = y
@@ -60,9 +62,10 @@ class Disc:
         self.is_caught_by_basket = False
         self.is_caught_by_tree = False
         self.hits_ground = False
+        self.color = color
 
     def draw(self):
-        pygame.draw.circle(self.screen, (0, 0, 255), (int(self.x), int(self.y)), self.radius)
+        pygame.draw.circle(self.screen, self.color, (int(self.x), int(self.y)), self.radius)
 
     def move(self):
         if self.is_caught_by_basket:
@@ -91,13 +94,12 @@ class Basket:
         self.x = x
         self.y = y
 
-
     def draw(self):
         pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y), (self.x, self.y - 50), 5)
         pygame.draw.rect(self.screen, (255, 255, 255), (self.x - 50, self.y - 150, 100, 100))
 
     def catch(self, disc, scoreboard):
-        hit_box = pygame.Rect(self.x - 50, self.y - 150, 100, 100)
+        hit_box = pygame.Rect(self.x - 50, self.y - 150, 20, 100)
         if hit_box.collidepoint(int(disc.x), int(disc.y)):
             disc.x = self.x
             disc.y = self.y - 70
@@ -195,8 +197,8 @@ class Scoreboard:
         self.ready_to_update = True
 
 
-def display_welcome(clock, screen):
-    background = pygame.image.load("menu_screen.png")
+def choose_player(clock, screen):
+    background = pygame.image.load("name_screen.png")
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -207,37 +209,19 @@ def display_welcome(clock, screen):
                 return
         screen.fill((0, 0, 0))
         screen.blit(background, (0, 0))
-        space_continue = Message(screen, 170, 400, 50, (255, 255, 0), "Press Space to Continue")
+        type_name = Message(screen, 25, 25, 50, (255, 255, 0), "Type First Name:")
+        type_name.draw()
+        space_continue = Message(screen, 250, 400, 50, (255, 255, 0), "Press Space to Continue")
         space_continue.draw()
-        welcome = Message(screen, 50, 100, 50, (255, 255, 0), "Welcome to Local Legends Disc Golf")
-        welcome.draw()
-        pygame.display.update()
 
-
-def choose_player(clock, screen):
-    background = pygame.image.load("name_screen.png")
-    while True:
-        clock.tick(60)
-        for event in pygame.event.get():
-            pressed_keys = pygame.key.get_pressed()
-            if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
-                return
-        screen.fill((0, 0, 0))
-        screen.blit(background, (0, 0))
-        font1 = pygame.font.Font(None, 50)
-        message_text1 = "Type First Name:"
-        message_image1 = font1.render(message_text1, True, (255, 255, 0))
-        screen.blit(message_image1, (25, 25))
-        font2 = pygame.font.Font(None, 50)
-        message_text2 = "Press Space to Continue"
-        message_image2 = font2.render(message_text2, True, (255, 255, 0))
-        screen.blit(message_image2, (170, 400))
         pygame.display.update()
 
 
 def display_game_screen(clock, screen, scoreboard):
-    disc_position = random.randrange(250, 501)
-    disc = Disc(screen, disc_position, 430, 10, 4, 430)
+    color_list = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255)]
+    disc_color = random.randrange(0, 6)
+    disc_position = random.randrange(150, 501)
+    disc = Disc(screen, disc_position, 430, 10, 1, 410, color_list[disc_color])
     power_slider = Slider(screen, 25, 25, 200)
     height_slider = Slider(screen, 25, 75, 200)
     basket = Basket(screen, 800, 500)
@@ -301,6 +285,7 @@ def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tr
         basket.draw()
         scoreboard.draw()
         player.draw()
+        player.move()
         wind.draw()
         disc.move()
         disc.draw()
@@ -338,14 +323,16 @@ def display_leaderboard(clock, screen):
         screen.fill((0, 0, 0))
         screen.blit(background, (0, 0))
         your_score = Message(screen, 25, 25, 40, (255, 255, 255), "Your Score:")
-        leaderboard = Message(screen, 25, 25, 40, (255, 255, 255), "Leaderboard")
+        your_score.draw()
+        leaderboard = Message(screen, 25, 75, 40, (255, 255, 255), "Leaderboard")
         leaderboard.draw()
-        space_continue = Message(screen, 170, 400, 50, (255, 255, 0), "Press Space to Continue")
-        space_continue.draw()
+        space_restart = Message(screen, 280, 400, 50, (255, 255, 0), "Press Space to Restart")
+        space_restart.draw()
         pygame.display.update()
 
 
 def instruction_screen(clock, screen):
+    background = pygame.image.load("menu_screen.png")
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -355,6 +342,7 @@ def instruction_screen(clock, screen):
             if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
                 return
         screen.fill((0, 0, 0))
+        screen.blit(background, (0, 0))
         welcome = Message(screen, 180, 30, 50, (255, 255, 0), "Welcome to Local Legends Disc Golf")
         welcome.draw()
         font = pygame.font.Font(None, 30)
@@ -367,7 +355,7 @@ def instruction_screen(clock, screen):
                " Watch out for trees as well as they will block your disc." \
                " But most importantly, have fun!"
         drawText(screen, text, (255, 255, 255), (100, 75, 800, 500), font)
-        space_continue = Message(screen, 170, 400, 50, (255, 255, 0), "Press Space to Continue")
+        space_continue = Message(screen, 250, 400, 50, (255, 255, 0), "Press Space to Continue")
         space_continue.draw()
         pygame.display.update()
 
@@ -424,10 +412,9 @@ def main():
     pygame.display.update()
 
     while True:
-        display_welcome(clock, screen)
         instruction_screen(clock, screen)
         choose_player(clock, screen)
-        for k in range(3):
+        for k in range(10):
             disc, power_slider, height_slider, basket, wind, tree, player = display_game_screen(clock, screen, scoreboard)
             animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard, player)
         display_leaderboard(clock, screen)
