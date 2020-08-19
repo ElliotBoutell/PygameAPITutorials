@@ -30,10 +30,17 @@ class Message:
 
 class Player:
     def __init__(self, screen, x, y):
-        pass
+        self.screen = screen
+        self.x = x
+        self.y = y
 
     def draw(self):
-        pass
+        pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y), (self.x - 30, self.y - 30), 3)
+        pygame.draw.line(self.screen, (255, 255, 255), (self.x - 60, self.y), (self.x - 30, self.y - 30), 3)
+        pygame.draw.line(self.screen, (255, 255, 255), (self.x - 30, self.y - 30), (self.x - 30, self.y + 30), 3)
+        pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y + 90), (self.x - 30, self.y + 30), 3)
+        pygame.draw.line(self.screen, (255, 255, 255), (self.x - 60, self.y + 90), (self.x - 30, self.y + 30), 3)
+        pygame.draw.circle(self.screen, (255, 255, 255), (self.x - 30, self.y - 45), 15, 15)
 
     def putt(self):
         pass
@@ -52,6 +59,7 @@ class Disc:
         self.dx = self.power
         self.is_caught_by_basket = False
         self.is_caught_by_tree = False
+        self.hits_ground = False
 
     def draw(self):
         pygame.draw.circle(self.screen, (0, 0, 255), (int(self.x), int(self.y)), self.radius)
@@ -61,9 +69,14 @@ class Disc:
             return
         if self.is_caught_by_tree:
             return
+        if self.hits_ground:
+            return
         if self.y < self.height:
             self.dy = 0
-        if self.y > self.original_y:
+        if self.y > 490:
+            self.power = 0
+            self.dy = 0
+        if self.x > 1010:
             self.power = 0
             self.dy = 0
         else:
@@ -93,7 +106,6 @@ class Basket:
             disc.is_caught_by_basket = True
 
 
-
 class Slider:
     def __init__(self, screen, x, y, length):
         self.screen = screen
@@ -111,37 +123,15 @@ class Slider:
                          (self.slider_x, self.slider_y + 10), 8)
 
     def set_power(self, disc, click_pos):
-        if 25 <= click_pos[0] < 65 and 20 <= click_pos[1] <= 30:
-            disc.power = 2
-            self.slider_x = click_pos[0]
-        if 65 <= click_pos[0] < 105 and 20 <= click_pos[1] <= 30:
-            disc.power = 4
-            self.slider_x = click_pos[0]
-        if 105 <= click_pos[0] < 145 and 20 <= click_pos[1] <= 30:
-            disc.power = 6
-            self.slider_x = click_pos[0]
-        if 145 <= click_pos[0] < 185 and 20 <= click_pos[1] <= 30:
-            disc.power = 8
-            self.slider_x = click_pos[0]
-        if 185 <= click_pos[0] <= 225 and 20 <= click_pos[1] <= 30:
-            disc.power = 10
+        if 25 <= click_pos[0] <= 225 and 20 <= click_pos[1] <= 30:
+            x = (click_pos[0] - 5) // 20
+            disc.power = 2 * x
             self.slider_x = click_pos[0]
 
     def set_height(self, disc, click_pos):
-        if 25 <= click_pos[0] < 65 and 70 <= click_pos[1] <= 80:
-            disc.height = 430
-            self.slider_x = click_pos[0]
-        if 65 <= click_pos[0] < 105 and 70 <= click_pos[1] <= 80:
-            disc.height = 410
-            self.slider_x = click_pos[0]
-        if 105 <= click_pos[0] < 145 and 70 <= click_pos[1] <= 80:
-            disc.height = 390
-            self.slider_x = click_pos[0]
-        if 145 <= click_pos[0] < 185 and 70 <= click_pos[1] <= 80:
-            disc.height = 370
-            self.slider_x = click_pos[0]
-        if 185 <= click_pos[0] <= 225 and 70 <= click_pos[1] <= 80:
-            disc.height = 350
+        if 25 <= click_pos[0] <= 225 and 70 <= click_pos[1] <= 80:
+            y = (click_pos[0] - 5) // 20
+            disc.height = 430 - (y * 20)
             self.slider_x = click_pos[0]
 
 
@@ -246,14 +236,15 @@ def choose_player(clock, screen):
 
 
 def display_game_screen(clock, screen, scoreboard):
-    disc = Disc(screen, 500, 450, 10, 4, 430)
+    disc_position = random.randrange(250, 501)
+    disc = Disc(screen, disc_position, 430, 10, 4, 430)
     power_slider = Slider(screen, 25, 25, 200)
     height_slider = Slider(screen, 25, 75, 200)
     basket = Basket(screen, 800, 500)
     wind = Wind(screen)
     tree_y = random.randrange(350, 450)
     tree = Tree(screen, 650, tree_y)
-
+    player = Player(screen, disc.x, disc.y)
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -263,7 +254,7 @@ def display_game_screen(clock, screen, scoreboard):
                 click_pos = event.pos
                 button_position = distance(click_pos, (500, 50))
                 if button_position <= 40:
-                    return disc, power_slider, height_slider, basket, wind, tree
+                    return disc, power_slider, height_slider, basket, wind, tree, player
                 power_slider.set_power(disc, click_pos)
                 height_slider.set_height(disc, click_pos)
                 wind.blow(disc)
@@ -283,10 +274,11 @@ def display_game_screen(clock, screen, scoreboard):
         wind.draw()
         tree.draw()
         scoreboard.draw()
+        player.draw()
         pygame.display.update()
 
 
-def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard):
+def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard, player):
     scoreboard.make_ready()
     while True:
         screen.fill((0, 0, 0))
@@ -308,6 +300,7 @@ def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tr
         height.draw()
         basket.draw()
         scoreboard.draw()
+        player.draw()
         wind.draw()
         disc.move()
         disc.draw()
@@ -325,6 +318,10 @@ def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tr
             too_bad.draw()
             space_continue = Message(screen, 170, 400, 50, (255, 255, 0), "Press Space to Continue")
             space_continue.draw()
+        if disc.y > 490 or disc.x > 1000:
+            disc.hits_ground = True
+            too_bad = Message(screen, 800, 200, 50, (255, 0, 0), "Too Bad!")
+            too_bad.draw()
         pygame.display.update()
 
 
@@ -431,8 +428,8 @@ def main():
         instruction_screen(clock, screen)
         choose_player(clock, screen)
         for k in range(3):
-            disc, power_slider, height_slider, basket, wind, tree = display_game_screen(clock, screen, scoreboard)
-            animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard)
+            disc, power_slider, height_slider, basket, wind, tree, player = display_game_screen(clock, screen, scoreboard)
+            animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard, player)
         display_leaderboard(clock, screen)
 
 
