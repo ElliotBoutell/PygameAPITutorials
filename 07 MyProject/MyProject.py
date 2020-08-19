@@ -143,10 +143,8 @@ class Wind:
         self.speed = random.randrange(-5, 6)
 
     def draw(self):
-        font1 = pygame.font.Font(None, 30)
-        message_text1 = "Wind Speed: " + str(self.speed)
-        message_image1 = font1.render(message_text1, True, (255, 255, 255))
-        self.screen.blit(message_image1, (800, 100))
+        wind_speed = Message(self.screen, 800, 25, 30, (255, 255, 255), "Wind Speed: " + str(self.speed))
+        wind_speed.draw()
 
     def blow(self, disc):
         disc.power = disc.power + self.speed
@@ -217,7 +215,7 @@ def choose_player(clock, screen):
         pygame.display.update()
 
 
-def display_game_screen(clock, screen, scoreboard):
+def display_game_screen(clock, screen, scoreboard, turn):
     color_list = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255)]
     disc_color = random.randrange(0, 6)
     disc_position = random.randrange(150, 501)
@@ -250,6 +248,8 @@ def display_game_screen(clock, screen, scoreboard):
         power = Message(screen, 250, 25, 20, (255, 255, 255), "Power")
         power.draw()
         height = Message(screen, 250, 75, 20, (255, 255, 255), "Height")
+        turn_counter = Message(screen, 800, 65, 30, (255, 255, 255), "Turn: " + str(turn))
+        turn_counter.draw()
         height.draw()
         disc.draw()
         power_slider.draw()
@@ -262,7 +262,7 @@ def display_game_screen(clock, screen, scoreboard):
         pygame.display.update()
 
 
-def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard, player):
+def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard, player, turn):
     scoreboard.make_ready()
     while True:
         screen.fill((0, 0, 0))
@@ -281,6 +281,8 @@ def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tr
         power = Message(screen, 250, 25, 20, (255, 255, 255), "Power")
         power.draw()
         height = Message(screen, 250, 75, 20, (255, 255, 255), "Height")
+        turn_counter = Message(screen, 800, 65, 30, (255, 255, 255), "Turn: " + str(turn))
+        turn_counter.draw()
         height.draw()
         basket.draw()
         scoreboard.draw()
@@ -293,24 +295,26 @@ def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tr
         tree.catch(disc)
         basket.catch(disc, scoreboard)
         if disc.is_caught_by_basket:
-            good_putt = Message(screen, 800, 200, 50, (0, 255, 0 ), "Good Putt!")
+            good_putt = Message(screen, 800, 100, 50, (0, 255, 0 ), "Good Putt!")
             good_putt.draw()
-            space_continue = Message(screen, 170, 400, 50, (255, 255, 0), "Press Space to Continue")
+            space_continue = Message(screen, 250, 200, 50, (255, 255, 0), "Press Space to Continue")
             space_continue.draw()
             scoreboard.update(100)
         if disc.is_caught_by_tree:
-            too_bad = Message(screen, 800, 200, 50, (255, 0, 0), "Too Bad!")
+            too_bad = Message(screen, 800, 100, 50, (255, 0, 0), "Too Bad!")
             too_bad.draw()
-            space_continue = Message(screen, 170, 400, 50, (255, 255, 0), "Press Space to Continue")
+            space_continue = Message(screen, 250, 200, 50, (255, 255, 0), "Press Space to Continue")
             space_continue.draw()
         if disc.y > 490 or disc.x > 1000:
             disc.hits_ground = True
-            too_bad = Message(screen, 800, 200, 50, (255, 0, 0), "Too Bad!")
+            too_bad = Message(screen, 800, 100, 50, (255, 0, 0), "Too Bad!")
             too_bad.draw()
+            space_continue = Message(screen, 250, 200, 50, (255, 255, 0), "Press Space to Continue")
+            space_continue.draw()
         pygame.display.update()
 
 
-def display_leaderboard(clock, screen):
+def display_leaderboard(clock, screen, scoreboard):
     background = pygame.image.load("end_screen.png")
     while True:
         clock.tick(60)
@@ -322,7 +326,7 @@ def display_leaderboard(clock, screen):
                 return
         screen.fill((0, 0, 0))
         screen.blit(background, (0, 0))
-        your_score = Message(screen, 25, 25, 40, (255, 255, 255), "Your Score:")
+        your_score = Message(screen, 25, 25, 40, (255, 255, 255), "Your Score:" + str(scoreboard.score))
         your_score.draw()
         leaderboard = Message(screen, 25, 75, 40, (255, 255, 255), "Leaderboard")
         leaderboard.draw()
@@ -415,9 +419,10 @@ def main():
         instruction_screen(clock, screen)
         choose_player(clock, screen)
         for k in range(10):
-            disc, power_slider, height_slider, basket, wind, tree, player = display_game_screen(clock, screen, scoreboard)
-            animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard, player)
-        display_leaderboard(clock, screen)
+            turn = k + 1
+            disc, power_slider, height_slider, basket, wind, tree, player = display_game_screen(clock, screen, scoreboard, turn)
+            animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard, player, turn)
+        display_leaderboard(clock, screen, scoreboard)
 
 
 main()
