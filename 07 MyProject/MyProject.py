@@ -41,7 +41,9 @@ class Disc:
         pygame.draw.circle(self.screen, (0, 0, 255), (int(self.x), int(self.y)), self.radius)
 
     def move(self):
-        if self.is_caught_by_basket or self.is_caught_by_tree:
+        if self.is_caught_by_basket:
+            return
+        if self.is_caught_by_tree:
             return
         if self.y < self.height:
             self.dy = 0
@@ -147,12 +149,13 @@ class Tree:
         self.screen = screen
         self.x = x
         self.y = y
-        self.height = random.randrange(20, 101)
+        self.height = 500 - self.y
 
     def draw(self):
-        pygame.draw.line(self.screen, (210, 105, 30), (self.x, self.y), (self.x, self.y - self.height), 10)
+        pygame.draw.line(self.screen, (210, 105, 30), (self.x, self.y), (self.x, self.y + self.height), 10)
 
     def catch(self, disc):
+        # pygame.draw.rect(self.screen, (255, 255, 255), (self.x, self.y, 50, 200))
         hit_box = pygame.Rect(self.x, self.y, 10, self.height)
         if hit_box.collidepoint(int(disc.x), int(disc.y)):
             disc.x = self.x - 10
@@ -207,12 +210,13 @@ def choose_player(clock, screen):
 
 
 def display_game_screen(clock, screen):
+    tree_y = random.randrange(350, 450)
     disc = Disc(screen, 500, 450, 10, 4, 430)
     power_slider = Slider(screen, 25, 25, 200)
     height_slider = Slider(screen, 25, 75, 200)
     basket = Basket(screen, 800, 500)
     wind = Wind(screen)
-    tree = Tree(screen, 650, 500)
+    tree = Tree(screen, 650, tree_y)
     print("Game Screen")
     while True:
         clock.tick(60)
