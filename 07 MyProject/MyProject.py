@@ -2,7 +2,7 @@ import pygame
 import sys
 import math
 import random
-
+text_color = (0, 0, 128)
 
 def distance(point1, point2):
     point1_x = point1[0]
@@ -93,7 +93,7 @@ class Basket:
         self.screen = screen
         self.x = x
         self.y = y
-        self.image = pygame.image.load("basket.png")
+        self.image = pygame.image.load("basket2.png")
 
     def draw(self):
         self.screen.blit(self.image, (self.x - 50, self.y - 140))
@@ -144,7 +144,7 @@ class Wind:
         self.speed = random.randrange(-5, 6)
 
     def draw(self):
-        wind_speed = Message(self.screen, 800, 25, 30, (255, 255, 255), "Wind Speed: " + str(self.speed))
+        wind_speed = Message(self.screen, 800, 25, 30, text_color, "Wind Speed: " + str(self.speed))
         wind_speed.draw()
 
     def blow(self, disc):
@@ -183,8 +183,8 @@ class Scoreboard:
         self.ready_to_update = True
 
     def draw(self):
-        score_string = "Score:" + str(self.score)
-        score_image = self.font.render(score_string, True, (255, 255, 255))
+        score_string = "Score: " + str(self.score)
+        score_image = self.font.render(score_string, True, (0, 0, 128))
         self.screen.blit(score_image, (800, 100))
 
     def update(self, amount_to_change, chain_sound, applause_sound):
@@ -209,7 +209,7 @@ def choose_player(clock, screen):
             if event.type == pygame.QUIT:
                 sys.exit()
             if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_RETURN]:
-                return
+                return name
             if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_BACKSPACE]:
                 name = name[:-1]
             if event.type == pygame.KEYDOWN:
@@ -258,10 +258,10 @@ def display_game_screen(clock, screen, scoreboard, turn):
         pygame.draw.circle(screen, (255, 0, 0), (500, 50), 40, 40)
         throw = Message(screen, 470, 40, 30, (255, 255, 255), "Throw")
         throw.draw()
-        power = Message(screen, 250, 25, 20, (255, 255, 255), "Power")
+        power = Message(screen, 250, 25, 20, text_color, "Power")
         power.draw()
-        height = Message(screen, 250, 75, 20, (255, 255, 255), "Height")
-        turn_counter = Message(screen, 800, 65, 30, (255, 255, 255), "Turn: " + str(turn))
+        height = Message(screen, 250, 75, 20, text_color, "Height")
+        turn_counter = Message(screen, 800, 65, 30, text_color, "Turn: " + str(turn))
         turn_counter.draw()
         height.draw()
         disc.draw()
@@ -277,8 +277,10 @@ def display_game_screen(clock, screen, scoreboard, turn):
 
 def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard, player, turn):
     scoreboard.make_ready()
-    chain_sound = pygame.mixer.Sound("chain_sound.wav")
+    chain_sound = pygame.mixer.Sound("chains2.wav")
     applause_sound = pygame.mixer.Sound("applause.wav")
+    chain_sound.set_volume(1)
+    applause_sound.set_volume(.1)
     background = pygame.image.load("game_background.png")
     while True:
         screen.fill((0, 0, 0))
@@ -295,10 +297,10 @@ def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tr
         throw.draw()
         power_slider.draw()
         height_slider.draw()
-        power = Message(screen, 250, 25, 20, (255, 255, 255), "Power")
+        power = Message(screen, 250, 25, 20, text_color, "Power")
         power.draw()
-        height = Message(screen, 250, 75, 20, (255, 255, 255), "Height")
-        turn_counter = Message(screen, 800, 65, 30, (255, 255, 255), "Turn: " + str(turn))
+        height = Message(screen, 250, 75, 20, text_color, "Height")
+        turn_counter = Message(screen, 800, 65, 30, (0, 0, 128), "Turn: " + str(turn))
         turn_counter.draw()
         height.draw()
         basket.draw()
@@ -331,8 +333,9 @@ def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tr
         pygame.display.update()
 
 
-def display_leaderboard(clock, screen, scoreboard):
+def display_leaderboard(clock, screen, scoreboard, name):
     background = pygame.image.load("menu_screen.png")
+    leaderboard = scores_file(name, scoreboard)
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -343,13 +346,42 @@ def display_leaderboard(clock, screen, scoreboard):
                 return
         screen.fill((0, 0, 0))
         screen.blit(background, (0, 0))
+        draw_position = 125
+        for k in range(len(leaderboard)):
+            message = Message(screen, 25, draw_position, 25, (255, 255, 255), leaderboard[k][:-1])
+            message.draw()
+            draw_position = draw_position + 30
         your_score = Message(screen, 25, 25, 40, (255, 255, 255), "Your Score: " + str(scoreboard.score))
         your_score.draw()
-        leaderboard = Message(screen, 25, 75, 40, (255, 255, 255), "Leaderboard")
-        leaderboard.draw()
+        leaderboard_title = Message(screen, 25, 75, 40, (255, 255, 255), "Leaderboard:")
+        leaderboard_title.draw()
         space_restart = Message(screen, 280, 400, 50, (255, 255, 0), "Press Space to Restart")
         space_restart.draw()
         pygame.display.update()
+
+
+def scores_file(name, scoreboard):
+    # got help from father
+    file = open("HighScores.txt", "r")
+    lines = file.readlines()
+    file.close()
+    did_insert = False
+    for k in range(len(lines)):
+        score = int(lines[k].split()[-1])
+        title = lines[k].split()[:-1]
+        if scoreboard.score >= score:
+            lines.insert(k, name + " " + str(scoreboard.score) + "\n")
+            did_insert = True
+            break
+    if not did_insert:
+        lines.append(name + " " + str(scoreboard.score) + "\n")
+    file = open("HighScores.txt", "w")
+    if len(lines) >= 10:
+        lines = lines[:10]
+    for k in range(len(lines)):
+        file.write(lines[k])
+    file.close()
+    return lines
 
 
 def instruction_screen(clock, screen):
@@ -428,23 +460,24 @@ def drawText(surface, text, color, rect, font, aa=False, bkg=None):
 def main():
     pygame.init()
     pygame.mixer.music.load("The Greatest Showman Cast - The Other Side (Official Audio) (1).mp3")
+    pygame.mixer.music.set_volume(.05)
     clock = pygame.time.Clock()
     pygame.display.set_caption("Local Legends Disc Golf")
     screen = pygame.display.set_mode((1000, 500))
-    scoreboard = Scoreboard(screen)
     pygame.display.update()
 
 
     while True:
-        pygame.mixer.music.play()
+        scoreboard = Scoreboard(screen)
+        pygame.mixer.music.play(1000)
         instruction_screen(clock, screen)
-        choose_player(clock, screen)
-        for k in range(10):
+        name = choose_player(clock, screen)
+        for k in range(3):
             turn = k + 1
             disc, power_slider, height_slider, basket, wind, tree, player = \
                 display_game_screen(clock, screen, scoreboard, turn)
             animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard, player, turn)
-        display_leaderboard(clock, screen, scoreboard)
+        display_leaderboard(clock, screen, scoreboard, name)
 
 
 main()
