@@ -93,10 +93,11 @@ class Basket:
         self.screen = screen
         self.x = x
         self.y = y
+        self.image = pygame.image.load("basket.png")
 
     def draw(self):
-        pygame.draw.line(self.screen, (255, 255, 255), (self.x, self.y), (self.x, self.y - 50), 5)
-        pygame.draw.rect(self.screen, (255, 255, 255), (self.x - 50, self.y - 150, 100, 100))
+        self.screen.blit(self.image, (self.x - 50, self.y - 140))
+
 
     def catch(self, disc, scoreboard):
         hit_box = pygame.Rect(self.x - 50, self.y - 150, 20, 100)
@@ -160,6 +161,7 @@ class Tree:
 
     def draw(self):
         pygame.draw.line(self.screen, (210, 105, 30), (self.x, self.y), (self.x, self.y + self.height), 10)
+        pygame.draw.circle(self.screen, (34, 139, 34), (self.x, self.y + 20), 25, 25)
 
     def catch(self, disc):
         # pygame.draw.rect(self.screen, (255, 255, 255), (self.x, self.y, 50, 200))
@@ -180,15 +182,16 @@ class Scoreboard:
         self.font = pygame.font.Font(None, 30)
         self.ready_to_update = True
 
-
     def draw(self):
         score_string = "Score:" + str(self.score)
         score_image = self.font.render(score_string, True, (255, 255, 255))
-        self.screen.blit(score_image, (5, 100))
+        self.screen.blit(score_image, (800, 100))
 
-    def update(self, amount_to_change):
+    def update(self, amount_to_change, chain_sound, applause_sound):
         if self.ready_to_update:
             self.score = self.score + amount_to_change
+            chain_sound.play()
+            applause_sound.play()
             self.ready_to_update = False
 
     def make_ready(self):
@@ -196,7 +199,7 @@ class Scoreboard:
 
 
 def choose_player(clock, screen):
-    background = pygame.image.load("name_screen.png")
+    background = pygame.image.load("menu_screen.png")
     pygame.key.start_text_input()
     name = ""
     while True:
@@ -205,8 +208,6 @@ def choose_player(clock, screen):
             pressed_keys = pygame.key.get_pressed()
             if event.type == pygame.QUIT:
                 sys.exit()
-            if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
-                return
             if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_RETURN]:
                 return
             if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_BACKSPACE]:
@@ -215,9 +216,9 @@ def choose_player(clock, screen):
                 name = name + event.unicode
         screen.fill((0, 0, 0))
         screen.blit(background, (0, 0))
-        type_name = Message(screen, 25, 25, 50, (255, 255, 0), "Type First Name:")
+        type_name = Message(screen, 25, 25, 50, (255, 255, 0), "Type Name:")
         type_name.draw()
-        space_continue = Message(screen, 250, 400, 50, (255, 255, 0), "Press Space to Continue")
+        space_continue = Message(screen, 250, 400, 50, (255, 255, 0), "Press Enter to Continue")
         space_continue.draw()
         name_message = Message(screen, 320, 25, 50, (255, 255, 255), name)
         name_message.draw()
@@ -226,6 +227,7 @@ def choose_player(clock, screen):
 
 
 def display_game_screen(clock, screen, scoreboard, turn):
+    background = pygame.image.load("game_background.png")
     color_list = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255)]
     disc_color = random.randrange(0, 6)
     disc_position = random.randrange(150, 501)
@@ -252,6 +254,7 @@ def display_game_screen(clock, screen, scoreboard, turn):
                 wind.blow(disc)
 
         screen.fill((0, 0, 0))
+        screen.blit(background, (0, 0))
         pygame.draw.circle(screen, (255, 0, 0), (500, 50), 40, 40)
         throw = Message(screen, 470, 40, 30, (255, 255, 255), "Throw")
         throw.draw()
@@ -274,8 +277,12 @@ def display_game_screen(clock, screen, scoreboard, turn):
 
 def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard, player, turn):
     scoreboard.make_ready()
+    chain_sound = pygame.mixer.Sound("chain_sound.wav")
+    applause_sound = pygame.mixer.Sound("applause.wav")
+    background = pygame.image.load("game_background.png")
     while True:
         screen.fill((0, 0, 0))
+        screen.blit(background, (0, 0))
         clock.tick(60)
         for event in pygame.event.get():
             pressed_keys = pygame.key.get_pressed()
@@ -305,27 +312,27 @@ def animation(clock, screen, disc, power_slider, height_slider, basket, wind, tr
         tree.catch(disc)
         basket.catch(disc, scoreboard)
         if disc.is_caught_by_basket:
-            good_putt = Message(screen, 800, 100, 50, (0, 255, 0 ), "Good Putt!")
+            good_putt = Message(screen, 400, 100, 50, (0, 255, 0 ), "Good Putt!")
             good_putt.draw()
-            space_continue = Message(screen, 250, 200, 50, (255, 255, 0), "Press Space to Continue")
+            space_continue = Message(screen, 300, 200, 50, (0, 255, 0), "Press Space to Continue")
             space_continue.draw()
-            scoreboard.update(100)
+            scoreboard.update(100, chain_sound, applause_sound)
         if disc.is_caught_by_tree:
-            too_bad = Message(screen, 800, 100, 50, (255, 0, 0), "Too Bad!")
+            too_bad = Message(screen, 400, 100, 50, (255, 0, 0), "Too Bad!")
             too_bad.draw()
-            space_continue = Message(screen, 250, 200, 50, (255, 255, 0), "Press Space to Continue")
+            space_continue = Message(screen, 300, 200, 50, (255, 0, 0), "Press Space to Continue")
             space_continue.draw()
         if disc.y > 490 or disc.x > 1000:
             disc.hits_ground = True
-            too_bad = Message(screen, 800, 100, 50, (255, 0, 0), "Too Bad!")
+            too_bad = Message(screen, 400, 100, 50, (255, 0, 0), "Too Bad!")
             too_bad.draw()
-            space_continue = Message(screen, 250, 200, 50, (255, 255, 0), "Press Space to Continue")
+            space_continue = Message(screen, 300, 200, 50, (255, 0, 0), "Press Space to Continue")
             space_continue.draw()
         pygame.display.update()
 
 
 def display_leaderboard(clock, screen, scoreboard):
-    background = pygame.image.load("end_screen.png")
+    background = pygame.image.load("menu_screen.png")
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -361,6 +368,7 @@ def instruction_screen(clock, screen):
         welcome.draw()
         font = pygame.font.Font(None, 30)
         text = "The objective of this game is to land the disc inside the basket on each putt." \
+               " You must enter the basket through the front. Discs coming from the top or back will not count." \
                " Each Putt is worth 100 points." \
                " To throw the disc, set the power and height bars and hit the red button." \
                " The wind will affect your power and height depending on which way it is blowing:" \
@@ -419,13 +427,16 @@ def drawText(surface, text, color, rect, font, aa=False, bkg=None):
 
 def main():
     pygame.init()
+    pygame.mixer.music.load("The Greatest Showman Cast - The Other Side (Official Audio) (1).mp3")
     clock = pygame.time.Clock()
     pygame.display.set_caption("Local Legends Disc Golf")
     screen = pygame.display.set_mode((1000, 500))
     scoreboard = Scoreboard(screen)
     pygame.display.update()
 
+
     while True:
+        pygame.mixer.music.play()
         instruction_screen(clock, screen)
         choose_player(clock, screen)
         for k in range(10):
