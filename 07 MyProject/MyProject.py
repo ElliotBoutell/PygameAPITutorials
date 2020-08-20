@@ -99,7 +99,7 @@ class Basket:
     def draw(self):
         self.screen.blit(self.image, (self.x - 50, self.y - 140))
 
-    def catch(self, disc):
+    def catch(self, disc, scoreboard):
         hit_box = pygame.Rect(self.x - 50, self.y - 150, 20, 100)
         if hit_box.collidepoint(int(disc.x), int(disc.y)):
             disc.x = self.x
