@@ -197,6 +197,8 @@ class Scoreboard:
 
 def choose_player(clock, screen):
     background = pygame.image.load("name_screen.png")
+    pygame.key.start_text_input()
+    name = ""
     while True:
         clock.tick(60)
         for event in pygame.event.get():
@@ -205,12 +207,20 @@ def choose_player(clock, screen):
                 sys.exit()
             if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_SPACE]:
                 return
+            if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_RETURN]:
+                return
+            if event.type == pygame.KEYDOWN and pressed_keys[pygame.K_BACKSPACE]:
+                name = name[:-1]
+            if event.type == pygame.KEYDOWN:
+                name = name + event.unicode
         screen.fill((0, 0, 0))
         screen.blit(background, (0, 0))
         type_name = Message(screen, 25, 25, 50, (255, 255, 0), "Type First Name:")
         type_name.draw()
         space_continue = Message(screen, 250, 400, 50, (255, 255, 0), "Press Space to Continue")
         space_continue.draw()
+        name_message = Message(screen, 320, 25, 50, (255, 255, 255), name)
+        name_message.draw()
 
         pygame.display.update()
 
@@ -326,7 +336,7 @@ def display_leaderboard(clock, screen, scoreboard):
                 return
         screen.fill((0, 0, 0))
         screen.blit(background, (0, 0))
-        your_score = Message(screen, 25, 25, 40, (255, 255, 255), "Your Score:" + str(scoreboard.score))
+        your_score = Message(screen, 25, 25, 40, (255, 255, 255), "Your Score: " + str(scoreboard.score))
         your_score.draw()
         leaderboard = Message(screen, 25, 75, 40, (255, 255, 255), "Leaderboard")
         leaderboard.draw()
@@ -353,7 +363,7 @@ def instruction_screen(clock, screen):
         text = "The objective of this game is to land the disc inside the basket on each putt." \
                " Each Putt is worth 100 points." \
                " To throw the disc, set the power and height bars and hit the red button." \
-               " The wind will effect your power and height depending on which way it is blowing:" \
+               " The wind will affect your power and height depending on which way it is blowing:" \
                " Headwinds (negative numbers) will lift the disc and take away power." \
                " Tailwinds (positive numbers) will drop your disc and add power." \
                " Watch out for trees as well as they will block your disc." \
@@ -410,7 +420,7 @@ def drawText(surface, text, color, rect, font, aa=False, bkg=None):
 def main():
     pygame.init()
     clock = pygame.time.Clock()
-    pygame.display.set_caption("Disc Golf Putting Game")
+    pygame.display.set_caption("Local Legends Disc Golf")
     screen = pygame.display.set_mode((1000, 500))
     scoreboard = Scoreboard(screen)
     pygame.display.update()
@@ -420,7 +430,8 @@ def main():
         choose_player(clock, screen)
         for k in range(10):
             turn = k + 1
-            disc, power_slider, height_slider, basket, wind, tree, player = display_game_screen(clock, screen, scoreboard, turn)
+            disc, power_slider, height_slider, basket, wind, tree, player = \
+                display_game_screen(clock, screen, scoreboard, turn)
             animation(clock, screen, disc, power_slider, height_slider, basket, wind, tree, scoreboard, player, turn)
         display_leaderboard(clock, screen, scoreboard)
 
