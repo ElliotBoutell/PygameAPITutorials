@@ -472,7 +472,7 @@ def main():
         pygame.mixer.music.play(1000)
         instruction_screen(clock, screen)
         name = choose_player(clock, screen)
-        for k in range(3):
+        for k in range(10):
             turn = k + 1
             disc, power_slider, height_slider, basket, wind, tree, player = \
                 display_game_screen(clock, screen, scoreboard, turn)
