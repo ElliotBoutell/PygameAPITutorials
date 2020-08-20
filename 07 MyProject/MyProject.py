@@ -4,6 +4,7 @@ import math
 import random
 text_color = (0, 0, 128)
 
+
 def distance(point1, point2):
     point1_x = point1[0]
     point2_x = point2[0]
@@ -98,8 +99,7 @@ class Basket:
     def draw(self):
         self.screen.blit(self.image, (self.x - 50, self.y - 140))
 
-
-    def catch(self, disc, scoreboard):
+    def catch(self, disc):
         hit_box = pygame.Rect(self.x - 50, self.y - 150, 20, 100)
         if hit_box.collidepoint(int(disc.x), int(disc.y)):
             disc.x = self.x
